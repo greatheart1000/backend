@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>金十数据 - 专业金融资讯平台</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #1e3a8a;
+      --secondary-color: #f59e0b;
+      --success-color: #10b981;
+      --danger-color: #ef4444;
+      --bg-light: #f8fafc;
+      --bg-card: #ffffff;
+      --text-dark: #1e293b;
+      --text-muted: #64748b;
+      --border-light: #e2e8f0;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: var(--text-dark);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .navbar {
+      background: rgba(255, 255, 255, 0.95) !important;
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .navbar-brand {
+      color: var(--primary-color) !important;
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
+    
+    .nav-link {
+      color: var(--text-dark) !important;
+      transition: color 0.3s ease;
+    }
+    
+    .nav-link:hover {
+      color: var(--secondary-color) !important;
+    }
+    
+    .nav-link.active {
+      color: var(--secondary-color) !important;
+      font-weight: 600;
+    }
+    
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .market-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid var(--border-light);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .market-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .price-up {
+      color: var(--success-color);
+    }
+    
+    .price-down {
+      color: var(--danger-color);
+    }
+    
+    .news-item {
+      border-left: 3px solid var(--secondary-color);
+      padding-left: 15px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+      background: #fafbfc;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    
+    .news-item:hover {
+      background: #f1f5f9;
+      border-left-color: var(--success-color);
+      transform: translateX(5px);
+    }
+    
+    .vip-badge {
+      background: linear-gradient(45deg, #f59e0b, #f97316);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+    
+    .live-indicator {
+      background: var(--danger-color);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 0.6rem;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .video-thumbnail {
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+    
+    .video-thumbnail img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    .video-thumbnail:hover img {
+      transform: scale(1.05);
+    }
+    
+    .play-button {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .futures-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .stock-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f8fafc;
+      margin-bottom: 8px;
+      transition: all 0.3s ease;
+      border: 1px solid var(--border-light);
+    }
+    
+    .stock-item:hover {
+      background: #f1f5f9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .user-welcome {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 25px rgba(30, 58, 138, 0.2);
+    }
+    
+    .card-header {
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border-light);
+      font-weight: 600;
+    }
+    
+    .text-muted {
+      color: var(--text-muted) !important;
+    }
+    
+    .btn-outline-light {
+      border-color: var(--border-light);
+      color: var(--text-dark);
+    }
+    
+    .btn-outline-light:hover {
+      background-color: var(--secondary-color);
+      border-color: var(--secondary-color);
+      color: white;
+    }
+    
+    .dropdown-menu-dark {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .dropdown-item {
+      color: var(--text-dark);
+    }
+    
+    .dropdown-item:hover {
+      background-color: #f1f5f9;
+      color: var(--text-dark);
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-muted);
+    }
+    
+    .loading::after {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid var(--secondary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- 导航栏 -->
+  <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="#">
+        <i class="fas fa-chart-line me-2"></i>金十数据
+      </a>
+      
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i>首页</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-newspaper me-1"></i>时事</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-chart-bar me-1"></i>期货</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-chart-line me-1"></i>股票</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-video me-1"></i>视频</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-crown me-1"></i>VIP专区</a>
+          </li>
+        </ul>
+        
+        <div class="d-flex align-items-center">
+          <span class="text-muted me-3">
+            <i class="fas fa-clock me-1"></i>
+            <span id="current-time"></span>
+          </span>
+          <div class="dropdown">
+            <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              <i class="fas fa-user me-1"></i>{{ username }}
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog me-2"></i>个人设置</a></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-bell me-2"></i>消息通知</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主要内容 -->
+  <div class="container-fluid" style="margin-top: 80px;">
+    <!-- 用户欢迎区域 -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="user-welcome">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h4 class="mb-2">欢迎回来，{{ username }}！</h4>
+              <p class="mb-0">今日市场动态已更新，请及时关注重要资讯</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <span class="live-indicator">
+                <i class="fas fa-circle me-1"></i>实时数据
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- 左侧主要内容 -->
+      <div class="col-lg-8">
+        <!-- 市场概览 -->
+        <div class="row mb-4" id="market-overview">
+          <div class="col-12">
+            <div class="loading">正在加载市场数据...</div>
+          </div>
+        </div>
+
+        <!-- 时事新闻 -->
+        <div class="card mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-newspaper me-2"></i>时事新闻</h5>
+            <span class="vip-badge">VIP</span>
+          </div>
+          <div class="card-body" id="news-container">
+            <div class="loading">正在加载新闻...</div>
+          </div>
+        </div>
+
+        <!-- 期货行情 -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>期货行情</h5>
+          </div>
+          <div class="card-body" id="futures-container">
+            <div class="loading">正在加载期货数据...</div>
+          </div>
+        </div>
+
+        <!-- 视频专区 -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-video me-2"></i>视频专区</h5>
+          </div>
+          <div class="card-body" id="videos-container">
+            <div class="loading">正在加载视频...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧边栏 -->
+      <div class="col-lg-4">
+        <!-- VIP专区 -->
+        <div class="card mb-4">
+          <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-crown me-2"></i>VIP专区</h5>
+          </div>
+          <div class="card-body" id="vip-container">
+            <div class="loading">正在加载VIP内容...</div>
+          </div>
+        </div>
+
+        <!-- 热门股票 -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-fire me-2"></i>热门股票</h5>
+          </div>
+          <div class="card-body" id="stocks-container">
+            <div class="loading">正在加载股票数据...</div>
+          </div>
+        </div>
+
+        <!-- 市场日历 -->
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>市场日历</h5>
+          </div>
+          <div class="card-body" id="calendar-container">
+            <div class="loading">正在加载日历...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // 更新时间
+    function updateTime() {
+      const now = new Date();
+      const timeString = now.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      document.getElementById('current-time').textContent = timeString;
+    }
+    
+    updateTime();
+    setInterval(updateTime, 1000);
+    
+    // API调用函数
+    async function fetchAPI(url) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('API调用失败:', error);
+        return null;
+      }
+    }
+    
+    // 格式化数字
+    function formatNumber(num) {
+      return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    
+    // 渲染市场数据
+    async function renderMarketData() {
+      const data = await fetchAPI('/api/market-data');
+      if (!data) return;
+      
+      const container = document.getElementById('market-overview');
+      container.innerHTML = data.map(item => `
+        <div class="col-md-3">
+          <div class="card market-card text-center p-3">
+            <h6 class="text-muted mb-2">${item.name}</h6>
+            <h4 class="${item.changePct >= 0 ? 'price-up' : 'price-down'} mb-1">${formatNumber(item.price)}</h4>
+            <small class="${item.changePct >= 0 ? 'price-up' : 'price-down'}">
+              ${item.changePct >= 0 ? '+' : ''}${item.changePct.toFixed(2)}% 
+              <i class="fas fa-arrow-${item.changePct >= 0 ? 'up' : 'down'}"></i>
+            </small>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // 渲染新闻
+    async function renderNews() {
+      const data = await fetchAPI('/api/news');
+      if (!data) return;
+      
+      const container = document.getElementById('news-container');
+      container.innerHTML = data.map(item => `
+        <div class="news-item">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6 class="mb-1">${item.title}</h6>
+              <p class="text-muted mb-0 small">${item.summary}</p>
+            </div>
+            <div class="text-end">
+              ${item.isVIP ? '<span class="vip-badge me-2">VIP</span>' : ''}
+              <small class="text-muted">${item.time}</small>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // 渲染期货数据
+    async function renderFutures() {
+      const data = await fetchAPI('/api/futures');
+      if (!data) return;
+      
+      const container = document.getElementById('futures-container');
+      container.innerHTML = `
+        <div class="futures-grid">
+          ${data.map(item => `
+            <div class="stock-item">
+              <div>
+                <strong>${item.name}</strong>
+                <br><small class="text-muted">${item.code}</small>
+              </div>
+              <div class="text-end">
+                <div class="${item.changePct >= 0 ? 'price-up' : 'price-down'}">${formatNumber(item.price)}</div>
+                <small class="${item.changePct >= 0 ? 'price-up' : 'price-down'}">${item.changePct >= 0 ? '+' : ''}${item.changePct.toFixed(1)}%</small>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+    
+    // 渲染视频
+    async function renderVideos() {
+      const data = await fetchAPI('/api/videos');
+      if (!data) return;
+      
+      const container = document.getElementById('videos-container');
+      container.innerHTML = `
+        <div class="row">
+          ${data.map(item => `
+            <div class="col-md-6 mb-3">
+              <div class="video-thumbnail">
+                <img src="${item.thumbnail}" alt="${item.title}">
+                <div class="play-button">
+                  <i class="fas fa-play"></i>
+                </div>
+              </div>
+              <h6 class="mt-2">${item.title}</h6>
+              <small class="text-muted">${item.time} · ${(item.views/10000).toFixed(1)}万次观看</small>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+    
+    // 渲染VIP内容
+    async function renderVIPContent() {
+      const data = await fetchAPI('/api/vip-content');
+      if (!data) return;
+      
+      const container = document.getElementById('vip-container');
+      container.innerHTML = data.map(item => `
+        <div class="alert alert-${item.type === 'report' ? 'warning' : 'info'}">
+          <h6><i class="fas fa-${item.type === 'report' ? 'star' : 'chart-line'} me-2"></i>${item.title}</h6>
+          <p class="mb-2">${item.desc}</p>
+          <button class="btn btn-${item.type === 'report' ? 'warning' : 'info'} btn-sm">立即查看</button>
+        </div>
+      `).join('');
+    }
+    
+    // 渲染股票数据
+    async function renderStocks() {
+      const data = await fetchAPI('/api/stocks');
+      if (!data) return;
+      
+      const container = document.getElementById('stocks-container');
+      container.innerHTML = data.map(item => `
+        <div class="stock-item">
+          <div>
+            <strong>${item.name}</strong>
+            <br><small class="text-muted">${item.code}</small>
+          </div>
+          <div class="text-end">
+            <div class="${item.changePct >= 0 ? 'price-up' : 'price-down'}">${formatNumber(item.price)}</div>
+            <small class="${item.changePct >= 0 ? 'price-up' : 'price-down'}">${item.changePct >= 0 ? '+' : ''}${item.changePct.toFixed(1)}%</small>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // 渲染市场日历
+    async function renderCalendar() {
+      const data = await fetchAPI('/api/market-calendar');
+      if (!data) return;
+      
+      const container = document.getElementById('calendar-container');
+      container.innerHTML = data.map(item => `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span>${item.event}</span>
+          <span class="badge bg-${item.status}">${item.date}</span>
+        </div>
+      `).join('');
+    }
+    
+    // 初始化页面数据
+    async function initializePage() {
+      await Promise.all([
+        renderMarketData(),
+        renderNews(),
+        renderFutures(),
+        renderVideos(),
+        renderVIPContent(),
+        renderStocks(),
+        renderCalendar()
+      ]);
+    }
+    
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', initializePage);
+    
+    // 定期更新市场数据
+    setInterval(renderMarketData, 10000); // 每10秒更新一次
+  </script>
+</body>
+</html>
