@@ -1,0 +1,17 @@
+# 核心依赖
+grpcio==1.54.0
+grpcio-tools==1.54.0
+celery==5.3.1
+amqp>=5.0.0,<6.0.0
+redis==4.6.0
+sqlalchemy==2.0.19
+
+# 数据处理
+numpy
+pandas
+Pillow
+
+# 工具和测试
+pytest
+requests
+python-dotenv

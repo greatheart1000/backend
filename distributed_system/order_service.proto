@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package order;
+
+// 订单服务定义
+service OrderService {
+  // 创建订单
+  rpc CreateOrder (OrderRequest) returns (OrderResponse) {}
+  
+  // 获取订单详情
+  rpc GetOrder (OrderIdRequest) returns (OrderResponse) {}
+  
+  // 更新订单状态
+  rpc UpdateOrderStatus (UpdateStatusRequest) returns (OrderResponse) {}
+  
+  // 获取用户所有订单
+  rpc ListOrders (UserIdRequest) returns (OrderListResponse) {}
+}
+
+// 订单请求
+message OrderRequest {
+  string user_id = 1;
+  repeated OrderItem items = 2;
+  string shipping_address = 3;
+  string payment_method = 4;
+}
+
+// 订单项
+message OrderItem {
+  string product_id = 1;
+  string product_name = 2;
+  double price = 3;
+  int32 quantity = 4;
+}
+
+// 订单ID请求
+message OrderIdRequest {
+  string order_id = 1;
+}
+
+// 用户ID请求
+message UserIdRequest {
+  string user_id = 1;
+}
+
+// 更新状态请求
+message UpdateStatusRequest {
+  string order_id = 1;
+  OrderStatus status = 2;
+}
+
+// 订单状态枚举
+enum OrderStatus {
+  PENDING = 0;
+  PROCESSING = 1;
+  SHIPPED = 2;
+  DELIVERED = 3;
+  CANCELLED = 4;
+}
+
+// 订单响应
+message OrderResponse {
+  string order_id = 1;
+  string user_id = 2;
+  repeated OrderItem items = 3;
+  double total_amount = 4;
+  string shipping_address = 5;
+  OrderStatus status = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+// 订单列表响应
+message OrderListResponse {
+  repeated OrderResponse orders = 1;
+}
