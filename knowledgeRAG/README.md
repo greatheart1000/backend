@@ -133,6 +133,7 @@ curl -X POST http://localhost:5000/api/advanced_search \
 - `user_context`：用户上下文信息
 
 **返回结果**：
+
 - `success`：操作是否成功
 - `query`：查询字符串
 - `results`：搜索结果列表
@@ -148,6 +149,7 @@ curl -X POST http://localhost:5000/api/advanced_search \
 - `size`：返回结果数量
 
 **返回结果**：
+
 - `success`：操作是否成功
 - `query`：查询字符串
 - `results`：搜索结果列表
@@ -160,6 +162,7 @@ curl -X POST http://localhost:5000/api/advanced_search \
 - `size`：每个查询返回的结果数量
 
 **返回结果**：
+
 - `success`：操作是否成功
 - `results`：每个查询的结果
 - `total_queries`：查询总数
@@ -305,6 +308,147 @@ for result in results:
 4. 添加更多的机器学习模型支持，如BERT、GPT等
 5. 提供可视化管理界面
 
-## License
 
-本项目采用MIT许可证 - 详情请查看LICENSE文件
+
+是的，思路正是如此：
+
+1. Query Understanding
+
+   ——从用户的自由文本里抽取出
+
+   - 结构化条件（时间区间、实体／ID、数值范围、用户角色权限……）
+   - 核心关键词（全文检索用）
+
+2. **DSL 组装**——把结构化条件放到 `bool.filter`，把关键词全文检索放到 `bool.must`，可选地再加向量检索、高亮、分组聚合、重排等
+
+3. **执行 & 优化**——提交给 ES，结合前面提到的索引／查询／集群优化手段提升性能
+
+下面给出一个精简模板和 Python 拼装示例，供参考。
+
+------
+
+## 1. Mustache 搜索模板（存 ES 上）
+
+```http
+PUT _scripts/mixed_search
+{
+  "script": {
+    "lang": "mustache",
+    "source": {
+      "size":  "{{size}}",
+      "query": {
+        "bool": {
+          "filter": [
+            {{#has_time}}
+            {
+              "range": {
+                "timestamp": {
+                  "gte": "{{time_from}}",
+                  "lte": "{{time_to}}"
+                }
+              }
+            }{{#has_entity}},{{/has_entity}}{{/has_time}}
+            {{#has_entity}}
+            {
+              "term": { "{{entity_field}}.keyword": "{{entity_value}}" }
+            }{{/has_entity}}
+          ],
+          "must": [
+            {
+              "multi_match": {
+                "query":  "{{keywords}}",
+                "fields": ["title^3","title.ngram^2","description"],
+                "operator": "and",
+                "fuzziness":  "AUTO"
+              }
+            }
+          ]
+        }
+      },
+      "highlight": {
+        "fields": {
+          "title": {}, "description": {}
+        }
+      }
+    }
+  }
+}
+```
+
+- `{{#has_time}}…{{/has_time}}`、`{{#has_entity}}…{{/has_entity}}` 用于条件化地插入 filter。
+
+------
+
+## 2. Python 示例：解析＋调用模板
+
+```python
+import dateparser, spacy
+from elasticsearch import Elasticsearch
+
+nlp = spacy.load("en_core_web_sm")
+es  = Elasticsearch()
+
+def parse_user_query(q):
+    doc = nlp(q)
+    # 1) 时间抽取（示例仅演示“from…to…”）
+    if "from" in q and "to" in q:
+        a,b = q.split("to", 1)
+        t0 = dateparser.parse(a.split("from",1)[1].strip())
+        t1 = dateparser.parse(b.strip())
+        time_from, time_to = t0.isoformat(), t1.isoformat()
+        has_time = True
+    else:
+        has_time = False
+        time_from = time_to = ""
+
+    # 2) 实体抽取（示例抽人名、ORG、GPE）
+    entity_field = entity_value = ""
+    has_entity = False
+    for ent in doc.ents:
+        if ent.label_ in ("PERSON","ORG","GPE"):
+            entity_field = ent.label_.lower()
+            entity_value = ent.text
+            has_entity = True
+            break
+
+    # 3) 关键词：简单取非实体、非停用词
+    keywords = " ".join(
+      tok.text for tok in doc 
+      if not tok.ent_type_ and not tok.is_stop and tok.is_alpha
+    ).strip()
+
+    return {
+      "has_time":     has_time,
+      "time_from":    time_from,
+      "time_to":      time_to,
+      "has_entity":   has_entity,
+      "entity_field": entity_field,
+      "entity_value": entity_value,
+      "keywords":     keywords or q,  # fallback
+      "size":         10
+    }
+
+def es_mixed_search(user_q):
+    params = parse_user_query(user_q)
+    return es.search_template(
+      index="products",
+      id="mixed_search",
+      params=params
+    )
+
+# 调用
+resp = es_mixed_search(
+  "Show me orders by Alice from Nov 1 2024 to Nov 30 2024"
+)
+print(resp)
+```
+
+------
+
+### 为什么这样做能兼顾“结构化”＆“非结构化”：
+
+- 结构化 filter（时间／实体／权限）走 Lucene 的 Filter Cache，精准且无评分消耗
+- 非结构化全文检索走倒排索引，多字段、多权重、模糊和高亮都可灵活配置
+- 如需语义检索，可在同一模板里继续插入 `knn` 段，或在二次排序里加 Cross-Encoder
+
+结合前面提到的 “索引优化”、“缓存”、“热-温-冷分层”、“分片路由” 等手段，就能打造一个既精准又高效的全场景检索系统。
