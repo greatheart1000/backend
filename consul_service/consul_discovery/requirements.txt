@@ -6,4 +6,3 @@ pyjwt==2.8.0
 bcrypt==4.0.1
 uuid==1.30
 python-dotenv==1.0.0
-etcd3==0.12.0
