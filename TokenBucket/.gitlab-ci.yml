@@ -1,0 +1,106 @@
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+
+# Redis服务用于测试
+services:
+  - redis:7
+
+before_script:
+  - python -m pip install --upgrade pip
+  - pip install -r requirements.txt
+
+# 测试阶段
+test_job:
+  stage: test
+  image: python:3.11
+  script:
+    - echo "运行单元测试..."
+    - pytest tests/ -v --tb=short
+    - echo "测试API接口..."
+    - uvicorn main:app --host 0.0.0.0 --port 8000 &
+    - sleep 5
+    - curl -f http://localhost:8000/ping
+    - curl -f http://localhost:8000/hello
+    - echo "测试限流功能..."
+    - for i in {1..15}; do curl -s http://localhost:8000/hello; done
+  coverage: '/TOTAL.+?(\d+\%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    paths:
+      - coverage.xml
+    expire_in: 1 week
+  only:
+    - main
+    - develop
+    - merge_requests
+
+# 构建Docker镜像
+build_job:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - echo "构建Docker镜像..."
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - main
+
+# 部署到生产环境
+deploy_job:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $DEPLOY_SERVER >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - echo "部署到生产服务器..."
+    - ssh $DEPLOY_USER@$DEPLOY_SERVER "
+        docker pull $CI_REGISTRY_IMAGE:latest &&
+        docker stop tokenbucket || true &&
+        docker rm tokenbucket || true &&
+        docker run -d --name tokenbucket -p 8000:8000 
+        -e USE_REDIS=true 
+        --restart unless-stopped 
+        $CI_REGISTRY_IMAGE:latest"
+  environment:
+    name: production
+    url: http://$DEPLOY_SERVER:8000
+  when: manual
+  only:
+    - main
+
+# 安全扫描 (可选)
+security_scan:
+  stage: test
+  image: python:3.11
+  script:
+    - pip install safety bandit
+    - safety check --json || true
+    - bandit -r . -f json || true
+  artifacts:
+    reports:
+      sast: gl-sast-report.json
+  allow_failure: true
+  only:
+    - main
+    - merge_requests
