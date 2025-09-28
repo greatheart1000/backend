@@ -308,25 +308,9 @@ docker-compose ps
 - **数据保留**: 200小时历史数据存储
 - **监控覆盖**: 业务指标 + 系统指标 + 应用指标
 
-## 🤝 贡献指南
-
-1. Fork本仓库
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 创建Pull Request
-
-## 📝 许可证
-
-MIT License - 详见 [LICENSE](LICENSE) 文件
-
-## 📞 联系方式
-
-如有问题或建议，请通过Issue联系我们。
-
----
 
 *持续更新中，欢迎Star和Fork！* ⭐
+
 
 
 
