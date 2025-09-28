@@ -1,0 +1,89 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@example.com'
+
+route:
+  group_by: ['alertname', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default'
+  routes:
+    # 严重告警立即发送
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 0s
+      repeat_interval: 5m
+    
+    # 警告级别告警
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      repeat_interval: 30m
+    
+    # 信息级别告警
+    - match:
+        severity: info
+      receiver: 'info-alerts'
+      repeat_interval: 2h
+
+receivers:
+  - name: 'default'
+    webhook_configs:
+      - url: 'http://localhost:8080/webhook/default'
+        send_resolved: true
+        
+  - name: 'critical-alerts'
+    webhook_configs:
+      # 飞书告警
+      - url: 'https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxx'
+        send_resolved: true
+        title: '🚨 严重告警'
+        text: |
+          **告警名称**: {{ .CommonAnnotations.summary }}
+          **服务**: {{ .CommonLabels.service }}
+          **严重级**: {{ .CommonLabels.severity }}
+          **详情**: {{ .CommonAnnotations.description }}
+          **时间**: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+    
+    # 邮件通知（可选）
+    # email_configs:
+    #   - to: 'ops@example.com'
+    #     subject: '🚨 严重告警: {{ .CommonAnnotations.summary }}'
+    #     body: |
+    #       告警服务: {{ .CommonLabels.service }}
+    #       告警级别: {{ .CommonLabels.severity }}
+    #       告警详情: {{ .CommonAnnotations.description }}
+    #       触发时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+        
+  - name: 'warning-alerts'
+    webhook_configs:
+      - url: 'https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxx'
+        send_resolved: true
+        title: '⚠️ 警告通知'
+        text: |
+          **告警名称**: {{ .CommonAnnotations.summary }}
+          **服务**: {{ .CommonLabels.service }}
+          **详情**: {{ .CommonAnnotations.description }}
+          **时间**: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+        
+  - name: 'info-alerts'
+    webhook_configs:
+      - url: 'https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxx'
+        send_resolved: true
+        title: '📊 信息通知'
+        text: |
+          **告警名称**: {{ .CommonAnnotations.summary }}
+          **服务**: {{ .CommonLabels.service }}
+          **详情**: {{ .CommonAnnotations.description }}
+          **时间**: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+
+inhibit_rules:
+  # 如果服务不可用，就不发送其他相关告警
+  - source_match:
+      alertname: ServiceDown
+    target_match:
+      service: login_monitor
+    equal: ['service']

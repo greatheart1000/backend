@@ -1,0 +1,117 @@
+groups:
+  - name: login_monitor_alerts
+    rules:
+      # 登录注册 QPS 异常
+      - alert: HighLoginRegisterRate
+        expr: |
+          (
+            rate(login_total[1m]) +
+            rate(register_total[1m])
+          ) > 50
+        for: 1m
+        labels:
+          severity: critical
+          service: login_monitor
+        annotations:
+          summary: "登录注册 QPS 异常高"
+          description: "登录注册总 QPS 为 {{ $value | humanize }} req/s，超过阈值 50 req/s"
+          
+      # 错误率过高
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(error_total[5m]) /
+            (rate(login_total[5m]) + rate(register_total[5m]))
+          ) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: login_monitor
+        annotations:
+          summary: "错误率过高"
+          description: "错误率为 {{ $value | humanizePercentage }}，超过 10% 阈值"
+          
+      # 响应时间过长
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95, rate(request_duration_seconds_bucket[5m])) > 1.0
+        for: 3m
+        labels:
+          severity: warning
+          service: login_monitor
+        annotations:
+          summary: "响应时间过长"
+          description: "95% 响应时间为 {{ $value }}s，超过 1s 阈值"
+          
+      # 活跃会话数异常
+      - alert: TooManyActiveSessions
+        expr: active_sessions_total > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: login_monitor
+        annotations:
+          summary: "活跃会话数过多"
+          description: "当前活跃会话数为 {{ $value }}，超过 1000 个会话"
+          
+      # 密码强度过低
+      - alert: WeakPasswordTrend
+        expr: |
+          histogram_quantile(0.50, rate(password_strength_score_bucket[10m])) < 2
+        for: 5m
+        labels:
+          severity: info
+          service: login_monitor
+        annotations:
+          summary: "密码强度普遍偏低"
+          description: "50% 用户的密码强度小于 2 分（满分 5 分）"
+          
+      # 登录失败次数过多（暴力破解检测）
+      - alert: BruteForceDetection
+        expr: |
+          histogram_quantile(0.95, rate(login_attempts_per_user_bucket[5m])) > 10
+        for: 2m
+        labels:
+          severity: critical
+          service: login_monitor
+        annotations:
+          summary: "检测到潜在暴力破解攻击"
+          description: "95% 用户的登录尝试次数超过 10 次，可能存在暴力破解攻击"
+          
+      # 服务不可用
+      - alert: ServiceDown
+        expr: up{job="flask-login-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: login_monitor
+        annotations:
+          summary: "登录服务不可用"
+          description: "登录监控服务已停止响应"
+          
+  - name: infrastructure_alerts
+    rules:
+      # Prometheus 抓取失败
+      - alert: PrometheusScrapeFailed
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "Prometheus 抓取目标失败"
+          description: "{{ $labels.job }} 目标抓取失败，实例: {{ $labels.instance }}"
+          
+      # 数据存储空间不足
+      - alert: PrometheusStorageAlmostFull
+        expr: |
+          (
+            prometheus_tsdb_symbol_table_size_bytes / 1024 / 1024 > 100
+          )
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "Prometheus 存储空间不足"
+          description: "Prometheus 符号表大小已达到 {{ $value }}MB"
