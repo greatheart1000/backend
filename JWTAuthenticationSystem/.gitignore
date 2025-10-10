@@ -1,0 +1,6 @@
+venv/
+*.pyc
+__pycache__/
+
+# 忽略 Node.js 依赖
+frontend/node_modules/
