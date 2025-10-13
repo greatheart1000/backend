@@ -1,0 +1,16 @@
+torch>=1.9.0
+transformers>=4.21.0
+sentence-transformers>=2.2.0
+redis>=4.3.0
+redis-py-cluster>=2.1.0
+elasticsearch>=8.0.0
+numpy>=1.21.0
+scikit-learn>=1.0.0
+faiss-cpu>=1.7.0
+openai>=0.27.0
+pydantic>=1.9.0
+asyncio
+aiohttp>=3.8.0
+flask>=2.0.0
+werkzeug>=2.0.0
+jieba>=0.42.1
