@@ -1,6 +1,6 @@
 # 后端项目集合
 
-```
+```   D:\project\my-app train.py
 标注后的PDF已保存至: output/annotated_annotated_resume.pdf
 
 --- 提取的结构化数据 ---
@@ -403,6 +403,7 @@ docker-compose ps
 
 
 *持续更新中，欢迎Star和Fork！* ⭐
+
 
 
 
