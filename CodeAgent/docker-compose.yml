@@ -2,20 +2,34 @@ version: '3.8'
 
 services:
   code-analysis-agent:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: code-analysis-agent
     ports:
       - "8000:8000"
     environment:
+      # 可选：通过环境变量覆盖配置（API key已内置在代码中）
       - HOST=0.0.0.0
       - PORT=8000
       - LOG_LEVEL=INFO
-    volumes:
-      - ./logs:/app/logs
+      # 如需覆盖API配置，可以取消注释以下行
+      # - OPENAI_API_KEY=your-custom-key
+      # - OPENAI_BASE_URL=https://api-inference.modelscope.cn/v1
+      # - OPENAI_MODEL=Qwen/Qwen3-VL-30B-A3B-Instruct
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 10s
+    # 资源限制（可选）
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2'
+    #       memory: 4G
+    #     reservations:
+    #       cpus: '1'
+    #       memory: 2G

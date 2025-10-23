@@ -4,95 +4,70 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
 *.egg
-MANIFEST
+*.egg-info/
+dist/
+build/
+*.whl
+.pytest_cache/
+.coverage
+htmlcov/
 
 # Virtual environments
 venv/
+ven/
 env/
 ENV/
-env.bak/
-venv.bak/
-ven/
+.venv
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
-
-# OS
+*.swn
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
 
 # Git
 .git/
 .gitignore
+.gitattributes
 
-# Docker
-Dockerfile
-docker-compose.yml
-.dockerignore
+# Documentation
+*.md
+!README.md
+COMPARISON.md
+OPTIMIZATION_REPORT.md
+USAGE_GUIDE.md
+
+# Backup files
+*.bak
+*.backup
+*_backup.py
+app_original_backup.py
+app_optimized.py
+
+# Test files
+test*.py
+*_test.py
+
+# Environment files
+.env
+.env.local
+.env.*.local
 
 # Logs
 *.log
 logs/
 
-# Temporary files
-temp/
-tmp/
-*.tmp
-
-# Test files
-test_*.py
-demo_*.py
-*_test.py
-
-# Documentation
-*.md
-docs/
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Node.js (if any)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Java (if any)
-*.class
-*.jar
-*.war
-*.ear
-target/
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
 
 # Other
-*.bak
-*.backup
-*.old
+.coverage
+.pytest_cache
+htmlcov
+.mypy_cache
+.ruff_cache

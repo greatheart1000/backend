@@ -1,199 +1,82 @@
 # Code Analysis Agent
 
-一个基于大模型的AI Agent，能够接收代码和需求，对代码进行分析，并输出结构化的分析报告。支持动态验证功能，能够自动生成和执行测试代码来验证功能的正确性。
+一个基于大模型的AI代码分析Agent，能够接收代码和需求描述，自动分析代码结构并生成功能定位报告。
 
-## 🚀 功能特性
+## 🚀 快速开始
 
-### 核心功能
-- ✅ 接收自然语言描述的功能需求
-- ✅ 接收包含项目完整源代码的ZIP压缩文件
-- ✅ 分析代码并生成结构化的功能定位报告
-- ✅ 使用ModelScope的大模型API进行代码分析
-- ✅ 支持多种编程语言 (Python, JavaScript, TypeScript, Java, C#, Go等)
+### Docker部署（推荐）
 
-### 增强功能 (加分项)
-- 🎯 **动态验证功能**: 自动验证功能的正确性
-- 🧪 **测试代码生成**: 根据代码自动生成可执行的测试代码
-- ⚡ **测试执行**: 自动执行生成的测试代码
-- 📊 **验证结果**: 返回测试执行结果和日志
-- 🔄 **多项目类型支持**: 自动检测项目类型并选择合适的测试框架
-
-## 📋 API接口
-
-### 分析接口
 ```bash
-POST /analyze
-Content-Type: multipart/form-data
-
-参数:
-- problem_description (string): 描述项目应实现功能的自然语言文字
-- code_zip (file): 包含项目完整源代码的zip压缩文件
-- enable_verification (boolean, 可选): 是否启用动态验证功能
-```
-
-### 响应格式
-
-#### 基本响应
-```json
-{
-  "feature_analysis": [
-    {
-      "feature_description": "实现`创建频道`功能",
-      "implementation_location": [
-        {
-          "file": "src/modules/channel/channel.resolver.ts",
-          "function": "createChannel",
-          "lines": "13-16"
-        }
-      ]
-    }
-  ],
-  "execution_plan_suggestion": "要执行此项目，应首先执行 `npm install` 安装依赖，然后执行 `npm run start:dev` 来启动服务。"
-}
-```
-
-#### 增强响应 (启用验证)
-```json
-{
-  "feature_analysis": [...],
-  "execution_plan_suggestion": "...",
-  "functional_verification": {
-    "generated_test_code": "const request = require('supertest');\nconst assert = require('assert');\n\ndescribe('GraphQL API', () => {\n  it('should create a channel and then a message in it', async () => {\n    const server = 'http://localhost:3000';\n    const createChannelQuery = `mutation { createChannel(createChannelInput: { name: \"New Channel\" }) { id, name } }`;\n    const channelRes = await request(server).post('/graphql').send({ query: createChannelQuery });\n    const channelId = channelRes.body.data.createChannel.id;\n\n    const createMessageQuery = `mutation { createMessage(createMessageInput: { channelId: ${channelId}, title: \"Hello\", content: \"World\" }) { id, title } }`;\n    const messageRes = await request(server).post('/graphql').send({ query: createMessageQuery });\n\n    assert.equal(messageRes.body.data.createMessage.title, 'Hello');\n  });\n});",
-    "execution_result": {
-      "tests_passed": true,
-      "log": "1 passing (2s)"
-    }
-  }
-}
-```
-
-## 🚀 快速启动
-
-### 方式1: Docker运行 (推荐)
-
-#### 一键启动
-```bash
-# 构建镜像
-docker build -t code-analysis-agent .
-
-# 运行容器
-docker run -p 8000:8000 code-analysis-agent
-```
-
-#### 使用Docker Compose
-```bash
-# 启动服务
+# 1. 启动服务
 docker-compose up -d
 
-# 查看日志
-docker-compose logs -f
+# 2. 快速测试（3秒验证）
+bash quick_test.sh          # Linux/Mac
+# 或
+./quick_test.ps1             # Windows PowerShell
 
-# 停止服务
-docker-compose down
+# 3. 完整测试（可选）
+python test_agent.py
 ```
 
-#### 测试服务
-```bash
-# 测试服务器
-curl http://localhost:8000/
+**验证成功标志**：看到 `✓ 基础测试全部通过！`
 
-# 运行完整测试
-python test.py
-```
+### 本地运行
 
-### 方式2: 本地运行
-
-#### 1. 安装依赖
 ```bash
 pip install -r requirements.txt
-```
-
-#### 2. 启动服务
-```bash
 python app.py
 ```
 
-#### 3. 测试服务
+## 📋 功能特性
+
+- ✅ 代码结构分析和功能定位
+- ✅ 自动生成功能实现报告
+- ✅ 支持多种编程语言（Python, Node.js, TypeScript, Java等）
+- ✅ 可选的测试代码生成和执行
+- ✅ 内置API密钥，开箱即用
+
+## 🐳 Docker使用
+
+### 启动服务
 ```bash
-curl http://localhost:8000/
+docker-compose up -d
 ```
 
-## 🧪 功能测试
-
-### 测试服务器健康状态
+### 查看日志
 ```bash
-curl http://localhost:8000/
+docker-compose logs -f
 ```
-**预期响应**: `{"message":"Enhanced Code Analysis Agent is running"}`
 
-### 运行完整测试
+### 停止服务
 ```bash
-python test.py
+docker-compose down
 ```
-**测试内容**:
-- ✅ 服务器健康检查
-- ✅ 基本分析功能
-- ✅ 动态验证功能
-- ✅ 测试代码生成
-- ✅ 测试执行验证
 
-### 测试分析接口
+### 重启服务
 ```bash
-curl -X POST "http://localhost:8000/analyze" \
-  -F "problem_description=实现用户注册登录功能" \
-  -F "code_zip=@your_code.zip" \
-  -F "enable_verification=true"
+docker-compose restart
 ```
 
-## 🔧 故障排除
+## 📡 API使用
 
-### 问题1: 无法连接到服务器
+### 健康检查
 ```bash
-# 检查容器是否运行
-docker ps
-
-# 查看容器日志
-docker logs code-analysis-agent
+curl http://localhost:8000/health
 ```
 
-### 问题2: 端口被占用
-```bash
-# 使用其他端口
-docker run -p 8001:8000 code-analysis-agent
-```
-
-### 问题3: 构建失败
-```bash
-# 清理Docker缓存
-docker system prune -f
-
-# 重新构建
-docker build --no-cache -t code-analysis-agent .
-```
-
-### 成功标志
-当看到以下输出时，说明Agent已成功启动：
-```
-INFO:     Started server process [1]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000
-```
-
-## 🎯 使用示例
-
-### 基本分析
+### 代码分析
 ```bash
 curl -X POST "http://localhost:8000/analyze" \
-  -F "problem_description=实现用户注册登录功能" \
-  -F "code_zip=@your_code.zip"
+  -F "problem_description=实现用户登录和注册功能" \
+  -F "code_zip=@./your_project.zip"
 ```
 
-### 增强分析 (启用动态验证)
+### 带测试验证
 ```bash
 curl -X POST "http://localhost:8000/analyze" \
-  -F "problem_description=实现用户注册登录功能" \
-  -F "code_zip=@your_code.zip" \
+  -F "problem_description=实现用户登录和注册功能" \
+  -F "code_zip=@./your_project.zip" \
   -F "enable_verification=true"
 ```
 
@@ -201,112 +84,147 @@ curl -X POST "http://localhost:8000/analyze" \
 ```python
 import requests
 
-# 发送分析请求
-with open('your_code.zip', 'rb') as f:
-    files = {'code_zip': ('code.zip', f, 'application/zip')}
-    data = {
-        'problem_description': '实现用户注册登录功能',
-        'enable_verification': True
+with open('project.zip', 'rb') as f:
+    files = {'code_zip': f}
+    data = {'problem_description': '实现用户登录功能'}
+    response = requests.post('http://localhost:8000/analyze', files=files, data=data)
+    print(response.json())
+```
+
+## 📊 响应格式
+
+```json
+{
+  "feature_analysis": [
+    {
+      "feature_description": "实现用户登录功能",
+      "implementation_location": [
+        {
+          "file": "src/auth/login.py",
+          "function": "login",
+          "lines": "10-25"
+        }
+      ]
     }
-    
-    response = requests.post(
-        'http://localhost:8000/analyze',
-        files=files,
-        data=data
-    )
-    
-    result = response.json()
-    print(f"功能分析数量: {len(result.get('feature_analysis', []))}")
-    
-    if result.get('functional_verification'):
-        verification = result['functional_verification']
-        print(f"测试代码: {verification['generated_test_code']}")
-        print(f"测试结果: {verification['execution_result']}")
+  ],
+  "execution_plan_suggestion": "1. 安装依赖\n2. 运行项目",
+  "functional_verification": {
+    "generated_test_code": "...",
+    "execution_result": {
+      "tests_passed": true,
+      "log": "测试通过"
+    }
+  }
+}
 ```
 
-## 🔧 技术实现
+## 🧪 测试
 
-### 动态验证流程
-1. **代码分析**: 使用大模型分析代码结构和功能
-2. **测试生成**: 根据分析结果生成适合的测试代码
-3. **项目检测**: 自动检测项目类型 (Python, Node.js, Java等)
-4. **依赖安装**: 自动安装项目依赖
-5. **测试执行**: 执行生成的测试代码
-6. **结果返回**: 返回测试执行结果和日志
+运行完整功能测试：
 
-### 支持的测试框架
-- **Node.js**: Jest, Mocha, Supertest
-- **Python**: pytest, unittest
-- **Java**: JUnit
-- **其他**: 根据项目类型自动选择
-
-### 技术栈
-- **Python 3.10**
-- **FastAPI** (Web框架)
-- **OpenAI Python SDK** (用于调用ModelScope API)
-- **Uvicorn** (ASGI服务器)
-- **Docker** (容器化部署)
-
-## 📊 项目结构
-
-```
-tuya/
-├── app.py                      # 增强版Agent (主程序)
-├── requirements.txt           # Python依赖
-├── Dockerfile                 # Docker配置
-├── docker-compose.yml         # Docker Compose配置
-├── .dockerignore              # Docker忽略文件
-└── README.md                  # 项目文档
+```bash
+python test_agent.py
 ```
 
-## 🔧 配置说明
+测试会自动创建示例项目并验证所有功能。
 
-### API配置
-Agent使用ModelScope API，已内置API密钥：
-```python
-client = OpenAI(
-    base_url='https://api-inference.modelscope.cn/v1',
-    api_key='ms-3e77e144-197b-44f3-93be-87c5d0f0ce16'  # 已内置
-)
+## ⚙️ 配置
+
+### 默认配置（已内置）
+- API地址: `https://api-inference.modelscope.cn/v1`
+- 模型: `Qwen/Qwen3-VL-30B-A3B-Instruct`
+- API密钥: 已内置（无需配置）
+
+### 可选配置
+通过环境变量自定义（参考`env.example`）：
+
+```bash
+export PORT=8000
+export MAX_FILE_SIZE_MB=50
+export LLM_API_TIMEOUT=120
 ```
 
-### 环境变量
-- `HOST`: 服务主机 (默认: 0.0.0.0)
-- `PORT`: 服务端口 (默认: 8000)
-- `LOG_LEVEL`: 日志级别 (默认: INFO)
+或创建`.env`文件：
+```bash
+cp env.example .env
+# 编辑配置
+```
 
-## 🚀 快速开始
+## 📁 项目结构
 
-1. **克隆项目**
-   ```bash
-   git clone <repository-url>
-   cd tuya
-   ```
+```
+CodeAgent/
+├── app.py              # 主应用程序
+├── config.py           # 配置管理
+├── requirements.txt    # Python依赖
+├── Dockerfile          # Docker配置
+├── docker-compose.yml  # Docker编排
+├── test_agent.py       # 功能测试
+└── README.md           # 本文件
+```
 
-2. **Docker运行**
-   ```bash
-   docker build -t code-analysis-agent .
-   docker run -p 8000:8000 code-analysis-agent
-   ```
+## 🔍 端点说明
 
-3. **访问服务**
-   - 服务地址: http://localhost:8000
-   - API文档: http://localhost:8000/docs
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/` | GET | 服务状态 |
+| `/health` | GET | 健康检查 |
+| `/analyze` | POST | 代码分析 |
+| `/docs` | GET | API文档 |
+
+## 🌍 支持的语言
+
+| 语言 | 代码分析 | 测试执行 |
+|------|----------|----------|
+| Python | ✅ | ✅ |
+| Node.js/TypeScript | ✅ | ✅ |
+| Java | ✅ | ⚠️ |
+| Go/Rust/C# | ✅ | ❌ |
+
+## 🔧 故障排查
+
+### 端口被占用
+```bash
+# 使用其他端口
+docker run -d -p 8001:8000 code-analysis-agent
+```
+
+### 查看详细日志
+```bash
+docker logs code-analysis-agent
+```
+
+### 进入容器调试
+```bash
+docker exec -it code-analysis-agent /bin/bash
+```
 
 ## 📝 注意事项
 
-1. **API限制**: ModelScope API有调用频率限制，请合理使用
-2. **文件大小**: 单个ZIP文件限制为50MB
-3. **测试执行**: 动态验证功能需要网络连接来安装依赖
-4. **安全性**: 测试代码会在临时目录中执行，请确保代码安全
+1. ZIP文件默认限制50MB
+2. 确保ZIP包含完整项目目录结构
+3. 大型项目分析可能需要1-2分钟
+4. 测试执行需要网络连接（安装依赖）
 
-## 🎉 总结
+## 🎯 使用场景
 
-这个Agent不仅能够分析代码并生成功能定位报告，还能够：
+- 快速理解新项目的代码结构
+- 定位特定功能的实现位置
+- 生成项目执行指导
+- 辅助代码审查和文档编写
 
-1. **自动生成测试代码** - 根据代码分析结果生成适合的测试代码
-2. **执行测试验证** - 自动执行生成的测试代码来验证功能正确性
-3. **返回验证结果** - 提供详细的测试执行结果和日志
-4. **支持多种项目类型** - 自动检测项目类型并选择合适的测试框架
+## 📖 API文档
 
-这使得Agent具备了完整的代码分析和验证能力，能够为用户提供更加全面和可靠的分析结果。
+启动服务后访问：http://localhost:8000/docs
+
+## 🏗️ 技术栈
+
+- Python 3.10
+- FastAPI
+- OpenAI SDK
+- Docker
+- Uvicorn
+
+---
+
+**版本**: 2.1.0 | **许可**: MIT | **更新**: 2025-10-23
